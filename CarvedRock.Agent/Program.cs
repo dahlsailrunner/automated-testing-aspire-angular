@@ -71,7 +71,11 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapPost("/agent", (AgentChatRequest request, Agent agent, CancellationToken cancellationToken) =>
+// Mapped at root (not "/agent") because the BFF's MapRemoteBffApiEndpoint mounts this
+// service's remote API at local path "/agent" and strips that prefix before forwarding -
+// a request to the BFF's "/agent" with no further path segments proxies straight through
+// to this service's root.
+app.MapPost("/", (AgentChatRequest request, Agent agent, CancellationToken cancellationToken) =>
     agent.GetAgentResponse(request.Message, request.History, cancellationToken));
 
 app.Run();

@@ -61,7 +61,7 @@ public partial class ListingModel(IProductService productService,
             client.BaseAddress = new("https://agent");
         }
 
-        var agentRequest = new HttpRequestMessage(HttpMethod.Post, "Agent")
+        var agentRequest = new HttpRequestMessage(HttpMethod.Post, "")
         {
             Content = JsonContent.Create(new
             {

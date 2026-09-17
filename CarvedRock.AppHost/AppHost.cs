@@ -1,4 +1,4 @@
-using Aspire.Hosting.JavaScript;
+//using Aspire.Hosting.JavaScript;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -36,7 +36,7 @@ var mcp = builder.AddProject<Projects.CarvedRock_Mcp>("mcp")
     .WithReference(api)
     .WaitFor(api);
 
-var openAiKeyParam = builder.AddParameter("openaiKey", 
+var openAiKeyParam = builder.AddParameter("openaiKey",
         value: builder.Configuration["Parameters:openaiKey"] ?? "", secret: true)
     .WithDescription("OpenAI API Key.  Get one from " +
     "[OpenAI](https://platform.openai.com). Note " +
@@ -59,7 +59,7 @@ var webapp = builder.AddProject<Projects.CarvedRock_WebApp>("webapp")
     .WaitFor(api)
     .WithExternalHttpEndpoints();
 
-var angularUi = builder.AddJavaScriptApp("angular-ui", "../ui-with-bff", "start")
+var angularUi = builder.AddViteApp("angular-ui", "../ui-with-bff", "start")
     .WithHttpEndpoint(port: 4200, targetPort: 4200, isProxied: false)
     .WithUrlForEndpoint("http", u => u.DisplayLocation = UrlDisplayLocation.DetailsOnly);
 
