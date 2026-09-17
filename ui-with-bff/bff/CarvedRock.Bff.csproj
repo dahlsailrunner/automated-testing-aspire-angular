@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPublishable>true</IsPublishable>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <UserSecretsId>2c7f5e0a-9b1a-4c2b-8b8d-6a3e2f4e6b7a</UserSecretsId>
+
+    <!-- AspNetCore.SpaYarp configuration - proxies non-API requests to the Angular dev server -->
+    <SpaRoot>../</SpaRoot>
+    <SpaClientUrl>http://localhost:4200</SpaClientUrl>
+    <SpaLaunchCommand>npm start</SpaLaunchCommand>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.SpaYarp" Version="2.0.1" />
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.5.4" />
+    <PackageReference Include="Duende.BFF.Yarp" Version="4.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CarvedRock.Core\CarvedRock.Core.csproj" />
+    <ProjectReference Include="..\..\CarvedRock.ServiceDefaults\CarvedRock.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

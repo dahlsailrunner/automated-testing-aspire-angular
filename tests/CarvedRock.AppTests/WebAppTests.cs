@@ -1,3 +1,5 @@
+using TUnit.Playwright;
+
 namespace CarvedRock.AppTests;
 
 [ParallelLimiter<BrowserParallelLimit>]

@@ -4,6 +4,7 @@ using ModelContextProtocol.Client;
 using Projects;
 using TUnit.Aspire;
 using Bogus;
+using Aspire.Hosting.ApplicationModel;
 
 [assembly: Retry(2, BackoffMs = 30_000)]
 
@@ -16,6 +17,12 @@ public class AppFixture : AspireFixture<CarvedRock_AppHost>
     public LocalContext TestDbContext { get; private set; } = null!;
 
     public List<Product> InitialProducts { get; private set; } = null!;
+
+    // npm/react installer resources are one-shot: they run to completion and exit (cleanly) rather
+    // than ever becoming "Healthy". Waiting for them to become healthy races their fast exit and
+    // fails with a misleading "failed to start" even on a clean (exit code 0) install.
+    protected override bool ShouldWaitForResource(IResource resource)
+        => base.ShouldWaitForResource(resource) && !resource.Name.EndsWith("-installer");
 
     public Faker GeneralFaker = new();
     public readonly Faker<NewProductModel> NewProductFaker =

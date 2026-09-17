@@ -1,0 +1,26 @@
+<h1>Delete Product</h1>
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else if (product(); as p) {
+  <p>Are you sure you want to delete the following product?</p>
+  <dl class="product-summary">
+    <dt>Name</dt>
+    <dd>{{ p.name }}</dd>
+    <dt>Category</dt>
+    <dd>{{ p.category }}</dd>
+    <dt>Price</dt>
+    <dd>{{ p.price | currency }}</dd>
+    <dt>Description</dt>
+    <dd>{{ p.description }}</dd>
+  </dl>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="delete-actions">
+    <a mat-stroked-button routerLink="/admin">Cancel</a>
+    <button mat-raised-button color="warn" (click)="confirmDelete()">Delete</button>
+  </div>
+}

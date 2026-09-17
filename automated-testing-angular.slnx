@@ -12,6 +12,7 @@
   <Project Path="CarvedRock.Agent/CarvedRock.Agent.csproj" />
   <Project Path="CarvedRock.Api/CarvedRock.Api.csproj" />
   <Project Path="CarvedRock.AppHost/CarvedRock.AppHost.csproj" />
+  <Project Path="ui-with-bff/bff/CarvedRock.Bff.csproj" />
   <Project Path="CarvedRock.Core/CarvedRock.Core.csproj" />
   <Project Path="CarvedRock.Data/CarvedRock.Data.csproj" />
   <Project Path="CarvedRock.Domain/CarvedRock.Domain.csproj" />

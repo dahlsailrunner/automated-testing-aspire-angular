@@ -1,0 +1,81 @@
+<h1>{{ isEdit ? 'Edit Product' : 'Create Product' }}</h1>
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="save()" class="product-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="Name" />
+      @if (form.get('Name')?.hasError('required')) {
+        <mat-error>Name is required.</mat-error>
+      }
+      @if (form.get('Name')?.hasError('maxlength')) {
+        <mat-error>Name must not exceed 50 characters.</mat-error>
+      }
+      @if (form.get('Name')?.hasError('server')) {
+        <mat-error>{{ form.get('Name')?.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="Category">
+        @for (cat of categories; track cat.value) {
+          <mat-option [value]="cat.value">{{ cat.label }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('Category')?.hasError('required')) {
+        <mat-error>Category is required.</mat-error>
+      }
+      @if (form.get('Category')?.hasError('server')) {
+        <mat-error>{{ form.get('Category')?.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Price</mat-label>
+      <input matInput type="number" step="0.01" formControlName="Price" />
+      @if (form.get('Price')?.hasError('required') || form.get('Price')?.hasError('min')) {
+        <mat-error>Price must be greater than zero.</mat-error>
+      }
+      @if (form.get('Price')?.hasError('server')) {
+        <mat-error>{{ form.get('Price')?.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="Description" rows="3"></textarea>
+      @if (form.get('Description')?.hasError('required')) {
+        <mat-error>Description is required.</mat-error>
+      }
+      @if (form.get('Description')?.hasError('maxlength')) {
+        <mat-error>Description must not exceed 150 characters.</mat-error>
+      }
+      @if (form.get('Description')?.hasError('server')) {
+        <mat-error>{{ form.get('Description')?.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Image URL</mat-label>
+      <input matInput formControlName="ImgUrl" />
+      @if (form.get('ImgUrl')?.hasError('required')) {
+        <mat-error>Image URL is required.</mat-error>
+      }
+      @if (form.get('ImgUrl')?.hasError('server')) {
+        <mat-error>{{ form.get('ImgUrl')?.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" routerLink="/admin">Cancel</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="submitting()">Save</button>
+    </div>
+  </form>
+}

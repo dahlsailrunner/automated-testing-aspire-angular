@@ -1,3 +1,5 @@
+using Aspire.Hosting.JavaScript;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var db = builder.AddPostgres("db")
@@ -55,6 +57,23 @@ var webapp = builder.AddProject<Projects.CarvedRock_WebApp>("webapp")
     .WithReference(api)
     .WithReference(agent)
     .WaitFor(api)
+    .WithExternalHttpEndpoints();
+
+var angularUi = builder.AddJavaScriptApp("angular-ui", "../ui-with-bff", "start")
+    .WithHttpEndpoint(port: 4200, targetPort: 4200, isProxied: false)
+    .WithUrlForEndpoint("http", u => u.DisplayLocation = UrlDisplayLocation.DetailsOnly);
+
+var bff = builder.AddProject<Projects.CarvedRock_Bff>("bff")
+    .WithUrlForEndpoint("https", u => u.DisplayText = "Angular Web App")
+    .WithHttpHealthCheck("/alive")
+    .WithReference(db)
+    .WithReference(api)
+    .WithReference(agent)
+    .WithEnvironment("RemoteApis__api", api.GetEndpoint("https"))
+    .WithEnvironment("RemoteApis__agent", agent.GetEndpoint("https"))
+    .WaitFor(db)
+    .WaitFor(api)
+    .WaitFor(angularUi)
     .WithExternalHttpEndpoints();
 
 builder.AddMcpInspector("mcp-inspector")

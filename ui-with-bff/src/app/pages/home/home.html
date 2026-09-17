@@ -1,0 +1,41 @@
+<div class="hero-section">
+  <img
+    src="https://www.pluralsight.com/content/dam/pluralsight2/teach/author-tools/carved-rock-fitness/hero_bkgd_v1.jpg"
+    alt="Rock climbing background"
+    class="hero-image"
+  />
+  <div class="hero-overlay"></div>
+  <div class="hero-text">
+    <h1>GET A GRIP</h1>
+    <h2>20% OFF</h2>
+    <p>THROUGHOUT THE SEASON</p>
+  </div>
+</div>
+
+<a routerLink="/current-promotion" class="promo-banner">
+  <img
+    src="https://www.pluralsight.com/content/dam/pluralsight2/teach/author-tools/carved-rock-fitness/img-brownboots.jpg"
+    alt="Brown Boots"
+  />
+  <div class="promo-text">
+    <div class="promo-title">Couples retreat weekend</div>
+    <div class="promo-highlight">Save an extra 20%</div>
+    <div class="promo-subtitle">when you buy 2 pairs of boots</div>
+  </div>
+  <img
+    src="https://www.pluralsight.com/content/dam/pluralsight2/teach/author-tools/carved-rock-fitness/img-greyboots.jpg"
+    alt="Grey Boots"
+  />
+</a>
+
+<div class="stories">
+  @for (story of stories; track story.title) {
+    <mat-card class="story-card">
+      <img mat-card-image [src]="story.img" [alt]="story.title" />
+      <mat-card-content>
+        <h3>{{ story.title }}</h3>
+        <div>{{ story.subtitle }}</div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

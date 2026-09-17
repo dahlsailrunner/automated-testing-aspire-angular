@@ -1,0 +1,67 @@
+<mat-toolbar color="primary" class="nav-toolbar">
+  <a routerLink="/" class="brand">CarvedRock Fitness</a>
+
+  <span class="nav-links">
+    @for (cat of categories; track cat.value) {
+      <a mat-button routerLink="/listing" [queryParams]="{ cat: cat.value }" routerLinkActive="active-link">
+        {{ cat.label }}
+      </a>
+    }
+    <a mat-button routerLink="/listing" [queryParams]="{ cat: 'badnews' }">Bad News</a>
+    @if (auth.isAdmin()) {
+      <a mat-button routerLink="/admin" routerLinkActive="active-link">Admin</a>
+    }
+  </span>
+
+  <span class="spacer"></span>
+
+  <a routerLink="/cart" class="cart-link" aria-label="Cart">
+    <mat-icon
+      [matBadge]="cart.itemCount() > 0 ? cart.itemCount() : null"
+      matBadgeColor="accent"
+      matBadgeSize="medium"
+      matBadgeOverlap="true"
+      >shopping_cart</mat-icon
+    >
+  </a>
+
+  @if (auth.isLoaded()) {
+    @if (auth.isAuthenticated()) {
+      <span class="user-email">{{ auth.email() }}</span>
+      <button mat-button (click)="logout()">Sign Out</button>
+    } @else {
+      <button mat-button (click)="auth.login('/')">Sign In</button>
+    }
+  }
+</mat-toolbar>
+
+<main class="page-content">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="app-footer">
+  <div class="footer-columns">
+    <div>
+      <h4>Customer Support</h4>
+      <p>Contact Us</p>
+      <p>Shipping &amp; Returns</p>
+      <p>FAQ</p>
+    </div>
+    <div>
+      <h4>Company Info</h4>
+      <p>About CarvedRock</p>
+      <p>Careers</p>
+      <p>Store Locations</p>
+    </div>
+    <div>
+      <h4>Privacy &amp; Terms</h4>
+      <p>Privacy Policy</p>
+      <p>Terms of Service</p>
+    </div>
+    <div>
+      <h4>Follow Us</h4>
+      <p>Stay up to date with new gear and promotions.</p>
+    </div>
+  </div>
+  <p class="footer-copyright">&copy; 2026 CarvedRock Fitness. All rights reserved.</p>
+</footer>

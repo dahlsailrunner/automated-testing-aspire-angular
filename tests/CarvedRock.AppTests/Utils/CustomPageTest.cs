@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using TUnit.Core.Interfaces;
 using TUnit.Playwright;
 
@@ -17,15 +16,6 @@ public class CustomPageTest : PageTest
     // solely from these events, and only while the test is still running. Record
     // them as they happen so DescribeLandingPageAsync can report the cause.
     private readonly List<string> _pageEvents = [];
-
-    // Playwright names its recordings page@<hash>.webm, which tells you nothing about
-    // which test produced which video once CI has uploaded a dozen of them. The name
-    // can't be set through RecordVideoDir, and IVideo.SaveAsAsync waits for the page to
-    // close - which hasn't happened yet inside an [After(Test)] hook. So note where each
-    // video is headed while the test runs, then rename them all at the end of the
-    // session, by which point every browser context has been torn down and flushed.
-    private static readonly ConcurrentBag<(string TestName, string SourcePath)>
-        RecordedVideos = [];
 
     [Before(Test)]
     public Task AddPageFailureHandling()
@@ -52,48 +42,6 @@ public class CustomPageTest : PageTest
         return Task.CompletedTask;
     }
 
-    [Before(Test)]
-    public async Task NoteVideoPathForRenaming(TestContext testContext)
-    {
-        if (Page.Video is null) return;
-
-        // A retried test records once per attempt; number them so the flaky-test videos
-        // line up with the attempts shown in the run report instead of overwriting.
-        var attempt = testContext.Execution.CurrentRetryAttempt;
-        var name = testContext.Metadata.TestName +
-                   (attempt > 0 ? $"-attempt{attempt + 1}" : string.Empty);
-
-        RecordedVideos.Add((name, await Page.Video.PathAsync()));
-    }
-
-    [After(TestSession)]
-    public static void RenameRecordedVideos()
-    {
-        foreach (var (testName, sourcePath) in RecordedVideos)
-        {
-            try
-            {
-                if (!File.Exists(sourcePath)) continue;
-
-                var directory = Path.GetDirectoryName(sourcePath)!;
-                var safeName = SanitizeForFileName(testName);
-                var target = Path.Combine(directory, $"{safeName}.webm");
-
-                // Last-resort de-duplication, e.g. a test that opens more than one page.
-                for (var n = 2; File.Exists(target); n++)
-                    target = Path.Combine(directory, $"{safeName}-{n}.webm");
-
-                File.Move(sourcePath, target);
-            }
-            catch (Exception renameFailure)
-            {
-                // A recording we couldn't rename is still a usable recording - never fail
-                // a run (or hide the real result) over cosmetic artifact naming.
-                Console.WriteLine($"Could not rename video for {testName}: {renameFailure.Message}");
-            }
-        }
-    }
-
     // playwright browsers on linux don't play well with the self-signed certs
     // this override is really only to support CI pipelines
     public override BrowserNewContextOptions ContextOptions(TestContext testContext)
@@ -101,19 +49,8 @@ public class CustomPageTest : PageTest
         var options = base.ContextOptions(testContext);
         options.IgnoreHTTPSErrors = true;
 
-        if (testContext.StateBag.ContainsKey(RecordVideoAttribute.StateBagKey))
-        {
-            options.RecordVideoDir = "playwright-artifacts/";
-
-            options.ViewportSize = new ViewportSize
-            { Width = 1280, Height = 1400 };
-        }
-
         return options;
     }
-
-    private static string SanitizeForFileName(string value) =>
-        string.Concat(value.Split(Path.GetInvalidFileNameChars())).Replace(' ', '-');
 }
 
 // Browser tests are the heaviest thing in this suite: every one is its own Chromium
@@ -138,18 +75,5 @@ public static class PageExtensions
 
         await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Sign Out" }))
                                 .ToBeVisibleAsync();
-    }
-}
-
-// The StateBag is used to avoid reflection and use TUnit source generation approach
-[AttributeUsage(AttributeTargets.Method)]
-public sealed class RecordVideoAttribute : Attribute, ITestDiscoveryEventReceiver
-{
-    internal const string StateBagKey = "CarvedRock.RecordVideo";
-
-    public ValueTask OnTestDiscovered(DiscoveredTestContext discoveredTestContext)
-    {
-        discoveredTestContext.TestContext.StateBag[StateBagKey] = true;
-        return default;
     }
 }

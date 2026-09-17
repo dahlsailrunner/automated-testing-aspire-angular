@@ -27,5 +27,6 @@
         "titleBar.inactiveBackground": "#df927399",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#df9273"
+    "peacock.color": "#df9273",
+    "dotnet.defaultSolution": "automated-testing-angular.slnx"
 }

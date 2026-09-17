@@ -1,0 +1,23 @@
+.summary-list {
+  list-style: none;
+  padding: 0;
+
+  li {
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+  }
+}
+
+.grand-total {
+  margin-top: 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.checkout-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}

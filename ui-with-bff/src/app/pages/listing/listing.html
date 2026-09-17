@@ -1,0 +1,64 @@
+<div class="listing-layout">
+  <div class="products-column">
+    <h1>{{ categoryName() }}</h1>
+
+    @if (loading()) {
+      <p>Loading products...</p>
+    } @else {
+      <div class="product-grid">
+        @for (product of products(); track product.id) {
+          <mat-card class="product-card">
+            <img mat-card-image [src]="product.imgUrl" [alt]="product.name" />
+            <mat-card-content>
+              <h3>{{ product.name }}</h3>
+              <p>{{ product.description }}</p>
+              <p class="price">{{ product.price | currency }}</p>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-raised-button color="primary" (click)="addToCart(product.id)">Add to Cart</button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="chat-column">
+    <mat-card class="chat-card">
+      <mat-card-header>
+        <mat-card-title><mat-icon>chat</mat-icon> Recommendation Helper</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chat-messages" #chatMessagesEl>
+          @for (msg of chatMessages(); track $index) {
+            <div class="chat-message" [class.user]="msg.role === 'user'">
+              <div class="bubble">
+                <small class="who">{{ msg.role === 'user' ? 'You' : 'Carved Rock Recommendations' }}</small>
+                <div class="chat-text" [innerHTML]="msg.html"></div>
+              </div>
+              <small class="time">{{ msg.time }}</small>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+      <mat-card-actions class="chat-input-row">
+        <mat-form-field appearance="outline" class="chat-input">
+          <input
+            matInput
+            placeholder="Describe your activity or gear needs..."
+            [ngModel]="chatInput()"
+            (ngModelChange)="chatInput.set($event)"
+            (keyup.enter)="sendChat()"
+          />
+        </mat-form-field>
+        <button mat-icon-button color="primary" (click)="sendChat()" [disabled]="chatSending()">
+          <mat-icon>send</mat-icon>
+        </button>
+        <button mat-icon-button (click)="stopChat()" [disabled]="!chatSending()">
+          <mat-icon>stop</mat-icon>
+        </button>
+      </mat-card-actions>
+      <small class="chat-hint">Streaming responses. Markdown supported.</small>
+    </mat-card>
+  </div>
+</div>

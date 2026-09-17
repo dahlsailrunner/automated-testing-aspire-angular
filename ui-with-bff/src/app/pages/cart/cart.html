@@ -1,0 +1,44 @@
+<h1>Your Cart</h1>
+
+@if (loading()) {
+  <p>Loading cart...</p>
+} @else if (items().length === 0) {
+  <p>Your cart is empty.</p>
+} @else {
+  <table mat-table [dataSource]="items()" class="cart-table">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="category">
+      <th mat-header-cell *matHeaderCellDef>Category</th>
+      <td mat-cell *matCellDef="let item">{{ item.category }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="price">
+      <th mat-header-cell *matHeaderCellDef>Price</th>
+      <td mat-cell *matCellDef="let item">{{ item.price | currency }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="quantity">
+      <th mat-header-cell *matHeaderCellDef>Qty</th>
+      <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="total">
+      <th mat-header-cell *matHeaderCellDef>Total</th>
+      <td mat-cell *matCellDef="let item">{{ item.total | currency }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  <div class="grand-total">Grand Total: {{ grandTotal | currency }}</div>
+
+  <div class="cart-actions">
+    <button mat-stroked-button (click)="clearCart()">Cancel Order / Clear Cart</button>
+    <button mat-raised-button color="primary" (click)="checkout()">Checkout</button>
+  </div>
+}

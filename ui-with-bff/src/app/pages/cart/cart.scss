@@ -1,0 +1,17 @@
+.cart-table {
+  width: 100%;
+}
+
+.grand-total {
+  margin-top: 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.cart-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
