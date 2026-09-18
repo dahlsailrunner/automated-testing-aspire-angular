@@ -8,7 +8,7 @@ public class CustomPageTest : PageTest
     [ClassDataSource<AppFixture>(Shared = SharedType.PerTestSession)]
     public required AppFixture Fixture { get; init; }
 
-    public string WebAppUrl => Fixture.App.GetEndpoint("webapp").ToString();
+    public string WebAppUrl => Fixture.App.GetEndpoint("bff").ToString();
 
     // When a navigation dies at the network layer, Chromium reports only
     // "chrome-error://chromewebdata/" with an empty document - the actual reason
@@ -42,6 +42,25 @@ public class CustomPageTest : PageTest
         return Task.CompletedTask;
     }
 
+    private BrowserCoverageCollector? _coverage;
+
+    // TUnit runs Before(Test) hooks base-class first, so Page (created by PageTest) already
+    // exists here; After(Test) hooks run derived-class first, so StopCoverage below still has
+    // a live Page/CDP session before PageTest tears it down.
+    [Before(Test)]
+    public async Task StartCoverage(TestContext testContext) =>
+        _coverage = await BrowserCoverageCollector.StartAsync(
+            Page, BrowserName, WebAppUrl, testContext.Metadata.TestName);
+
+    [After(Test)]
+    public async Task StopCoverage()
+    {
+        if (_coverage is not null)
+        {
+            await _coverage.StopAndWriteAsync();
+        }
+    }
+
     // playwright browsers on linux don't play well with the self-signed certs
     // this override is really only to support CI pipelines
     public override BrowserNewContextOptions ContextOptions(TestContext testContext)
@@ -73,7 +92,9 @@ public static class PageExtensions
                                 .FillAsync(password);
         await page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
 
-        await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Sign Out" }))
+        //await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Sign Out" }))
+        //                        .ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Sign Out" }))
                                 .ToBeVisibleAsync();
     }
 }

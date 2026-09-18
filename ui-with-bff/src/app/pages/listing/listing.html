@@ -29,7 +29,7 @@
         <mat-card-title><mat-icon>chat</mat-icon> Recommendation Helper</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="chat-messages" #chatMessagesEl>
+        <div class="chat-messages" id="chatMessages" #chatMessagesEl>
           @for (msg of chatMessages(); track $index) {
             <div class="chat-message" [class.user]="msg.role === 'user'">
               <div class="bubble">
@@ -51,10 +51,10 @@
             (keyup.enter)="sendChat()"
           />
         </mat-form-field>
-        <button mat-icon-button color="primary" (click)="sendChat()" [disabled]="chatSending()">
+        <button mat-icon-button color="primary" aria-label="Send" (click)="sendChat()" [disabled]="chatSending()">
           <mat-icon>send</mat-icon>
         </button>
-        <button mat-icon-button (click)="stopChat()" [disabled]="!chatSending()">
+        <button mat-icon-button aria-label="Stop" (click)="stopChat()" [disabled]="!chatSending()">
           <mat-icon>stop</mat-icon>
         </button>
       </mat-card-actions>

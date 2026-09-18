@@ -28,13 +28,22 @@ public partial class WebAppTests : CustomPageTest
         // footwear link should redirect to login page
         await Page.Login("alice", "alice");  // customer
 
-        await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
+        // Razor UI rendered products as table rows; the Angular UI uses mat-card grid items instead.
+        //await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
+        //            .GetByRole(AriaRole.Button).ClickAsync();
+        //await Page.GetByRole(AriaRole.Row, new() { Name = "River Guide" })
+        //            .GetByRole(AriaRole.Button).ClickAsync();
+        await Page.Locator("mat-card.product-card").Filter(new() { HasText = "Desert Walker" })
                     .GetByRole(AriaRole.Button).ClickAsync();
-        await Page.GetByRole(AriaRole.Row, new() { Name = "River Guide" })
+        await Page.Locator("mat-card.product-card").Filter(new() { HasText = "River Guide" })
                     .GetByRole(AriaRole.Button).ClickAsync();
 
-        // implicit assertion that the cart button shows 2 items in it
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Cart (2)" }).ClickAsync();
+        // Razor UI baked the item count into the cart link's accessible name ("Cart (2)");
+        // the Angular UI uses a fixed aria-label ("Cart") plus a separate mat-badge for the count.
+        //// implicit assertion that the cart button shows 2 items in it
+        //await Page.GetByRole(AriaRole.Link, new() { Name = "Cart (2)" }).ClickAsync();
+        await Expect(Page.Locator("a.cart-link .mat-badge-content")).ToHaveTextAsync("2");
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Cart" }).ClickAsync();
 
         await Expect(Page.Locator("tbody")).ToContainTextAsync("Desert Walker");
         await Expect(Page.Locator("tbody")).ToContainTextAsync("River Guide");
@@ -45,8 +54,11 @@ public partial class WebAppTests : CustomPageTest
         await Page.GetByRole(AriaRole.Button, new() { Name = "Submit Order" })
                     .ClickAsync();
 
+        // Razor UI's thank-you copy included order specifics; the Angular UI's is generic.
+        //await Expect(Page.Locator("h1"))
+        //        .ToContainTextAsync("Thanks for your (fake) order!");
         await Expect(Page.Locator("h1"))
-                .ToContainTextAsync("Thanks for your (fake) order!");
+                .ToContainTextAsync("Thank You!");
 
         var emailUrl = Fixture.App.GetEndpoint("smtp", "http").ToString();
 
@@ -79,10 +91,14 @@ public partial class WebAppTests : CustomPageTest
 
         await Page.Login("alice", "alice");
 
-        await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
+        //await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
+        //            .GetByRole(AriaRole.Button).ClickAsync();
+        await Page.Locator("mat-card.product-card").Filter(new() { HasText = "Desert Walker" })
                     .GetByRole(AriaRole.Button).ClickAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Cart (1)" }).ClickAsync();
+        //await Page.GetByRole(AriaRole.Link, new() { Name = "Cart (1)" }).ClickAsync();
+        await Expect(Page.Locator("a.cart-link .mat-badge-content")).ToHaveTextAsync("1");
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Cart" }).ClickAsync();
 
         await Expect(Page.Locator("tbody")).ToContainTextAsync("Desert Walker");
 
@@ -90,7 +106,9 @@ public partial class WebAppTests : CustomPageTest
                     .ClickAsync();
 
         await Expect(Page.GetByText("GET A GRIP")).ToBeVisibleAsync(); // redirected home
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (0)" })).ToBeVisibleAsync();
+        //await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (0)" })).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart" })).ToBeVisibleAsync();
+        await Expect(Page.Locator("a.cart-link .mat-badge-content")).Not.ToBeVisibleAsync();
     }
 
     [Test]
@@ -102,10 +120,14 @@ public partial class WebAppTests : CustomPageTest
 
         await Page.Login("alice", "alice");
 
-        await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
+        //await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
+        //            .GetByRole(AriaRole.Button).ClickAsync();
+        await Page.Locator("mat-card.product-card").Filter(new() { HasText = "Desert Walker" })
                     .GetByRole(AriaRole.Button).ClickAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Cart (1)" }).ClickAsync();
+        //await Page.GetByRole(AriaRole.Link, new() { Name = "Cart (1)" }).ClickAsync();
+        await Expect(Page.Locator("a.cart-link .mat-badge-content")).ToHaveTextAsync("1");
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Cart" }).ClickAsync();
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Checkout" }).ClickAsync();
 
@@ -115,20 +137,22 @@ public partial class WebAppTests : CustomPageTest
                     .ClickAsync();
 
         await Expect(Page.GetByText("GET A GRIP")).ToBeVisibleAsync(); // redirected home
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (0)" })).ToBeVisibleAsync();
+        //await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (0)" })).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart" })).ToBeVisibleAsync();
+        await Expect(Page.Locator("a.cart-link .mat-badge-content")).Not.ToBeVisibleAsync();
     }
 
     [Test]
-    public async Task NavigatingToListingWithoutCategoryShowsErrorPage()
+    public async Task NavigatingToBadNewsShowsErrorPage()
     {
-        // no "cat" query string - distinct from the "Bad News" nav link (cat=badnews),
-        // which is its own exercise; this hits Listing.cshtml.cs's other error path
-        var listingUrl = new Uri(new Uri(WebAppUrl), "Listing").ToString();
+        await Page.GotoAsync(WebAppUrl);
 
-        await Page.GotoAsync(listingUrl);
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Bad News" }).ClickAsync();
         await Page.Login("alice", "alice"); // page requires auth; login redirects back here
 
-        await Expect(Page.GetByText("An error occurred while processing your request."))
+        //await Expect(Page.GetByText("An error occurred while processing your request."))
+        //            .ToBeVisibleAsync();
+        await Expect(Page.GetByText("An unexpected error occurred while processing your request."))
                     .ToBeVisibleAsync();
     }
 
@@ -137,7 +161,8 @@ public partial class WebAppTests : CustomPageTest
     public async Task AdminCanDeleteProductsViaChat()
     {
         await Page.GotoAsync(WebAppUrl);
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Sign in" }).ClickAsync();
+        //await Page.GetByRole(AriaRole.Link, new() { Name = "Sign in" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Sign In" }).ClickAsync();
 
         await Page.Login("bob", "bob");  // admin
 
@@ -163,19 +188,24 @@ public partial class WebAppTests : CustomPageTest
     public async Task CustomerCanAddRecommendedProductToCartViaChat()
     {
         await Page.GotoAsync(WebAppUrl);
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Sign in" }).ClickAsync();
+        //await Page.GetByRole(AriaRole.Link, new() { Name = "Sign in" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Sign In" }).ClickAsync();
 
         await Page.Login("bob", "bob");
 
         // bob's cart is real, persistent state (unlike ApiTests' per-session Testcontainers DB,
         // this AppHost's Postgres survives across separate test runs) - start from a known-empty
-        // cart so the "Cart (1)" assertion below is reliable no matter how many times this ran before.
-        await Page.GotoAsync(new Uri(new Uri(WebAppUrl), "Cart").ToString());
+        // cart so the cart-badge assertion below is reliable no matter how many times this ran before.
+        // Razor routing was case-insensitive ("Cart"); Angular's router only registers "cart".
+        //await Page.GotoAsync(new Uri(new Uri(WebAppUrl), "Cart").ToString());
+        await Page.GotoAsync(new Uri(new Uri(WebAppUrl), "cart").ToString());
         var clearCartButton = Page.GetByRole(AriaRole.Button, new() { Name = "Cancel Order / Clear Cart" });
         if (await clearCartButton.IsVisibleAsync())
         {
             await clearCartButton.ClickAsync();
-            await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (0)" })).ToBeVisibleAsync();
+            //await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (0)" })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart" })).ToBeVisibleAsync();
+            await Expect(Page.Locator("a.cart-link .mat-badge-content")).Not.ToBeVisibleAsync();
         }
 
         await Page.GetByRole(AriaRole.Link, new() { Name = "Footwear" }).ClickAsync();
@@ -194,9 +224,11 @@ public partial class WebAppTests : CustomPageTest
                 .ToContainTextAsync("added",  // be careful - non-deterministic wording!!
                     options: new() { Timeout = 15_000 });
 
-        // hard assertions: the cart button text updates without a page reload, and the DB row exists
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (1)" }))
-                .ToBeVisibleAsync(new() { Timeout = 15_000 });
+        // hard assertions: the cart badge updates without a page reload, and the DB row exists
+        //await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (1)" }))
+        //        .ToBeVisibleAsync(new() { Timeout = 15_000 });
+        await Expect(Page.Locator("a.cart-link .mat-badge-content"))
+                .ToHaveTextAsync("1", new() { Timeout = 15_000 });
 
         var desertWalker = await Fixture.TestDbContext.Products
                                 .FirstOrDefaultAsync(p => p.Name == "Desert Walker");

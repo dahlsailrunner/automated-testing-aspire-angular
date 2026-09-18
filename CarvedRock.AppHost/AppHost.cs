@@ -51,13 +51,13 @@ var agent = builder.AddProject<Projects.CarvedRock_Agent>("agent")
     .WithReference(mcp)
     .WaitFor(mcp);
 
-var webapp = builder.AddProject<Projects.CarvedRock_WebApp>("webapp")
-    .WithUrlForEndpoint("https", u => u.DisplayText = "Web App")
-    .WithHttpHealthCheck("/alive")
-    .WithReference(api)
-    .WithReference(agent)
-    .WaitFor(api)
-    .WithExternalHttpEndpoints();
+//var webapp = builder.AddProject<Projects.CarvedRock_WebApp>("webapp")
+//    .WithUrlForEndpoint("https", u => u.DisplayText = "Web App")
+//    .WithHttpHealthCheck("/alive")
+//    .WithReference(api)
+//    .WithReference(agent)
+//    .WaitFor(api)
+//    .WithExternalHttpEndpoints();
 
 var angularUi = builder.AddViteApp("angular-ui", "../ui-with-bff", "start")
     .WithHttpEndpoint(port: 4200, targetPort: 4200, isProxied: false)

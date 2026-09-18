@@ -19,6 +19,13 @@ jobs:
         with:
           dotnet-version: 10.x
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: ui-with-bff/package-lock.json
+
       - name: Build & Install
         run: dotnet build --configuration Release
 
@@ -37,6 +44,7 @@ jobs:
       - name: Run tests with coverage
         env:
           Parameters__openaiKey: ${{ secrets.OPENAI_KEY }}
+          E2E_COVERAGE_DIR: ${{ github.workspace }}/TestResults/e2e-v8-coverage
         run: |
           dotnet test \
             --configuration Release \
@@ -48,11 +56,15 @@ jobs:
             --coverage-settings testconfig.json \
             --report-trx
 
+      - name: Generate Angular UI coverage report
+        if: always() # Run even if tests fail, same as the local test-with-coverage.ps1 script
+        run: node ui-with-bff/e2e-coverage.mjs
+
       - name: ReportGenerator
         if: always() # Run even if tests fail
         uses: danielpalme/ReportGenerator-GitHub-Action@5.5.11
         with:
-          reports: "./TestResults/*.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
+          reports: "./TestResults/**/*.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
           targetdir: "coveragereport" # REQUIRED # The directory where the generated report should be saved.
           reporttypes: "MarkdownSummaryGithub,Html" # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, OpenCover, CsvSummary, Html, Html_Dark, Html_Light, Html_BlueRed, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlInline_AzurePipelines_Light, HtmlSummary, Html_BlueRed_Summary, JsonSummary, CodeClimate, Latex, LatexSummary, lcov, Markdown, MarkdownSummary, MarkdownAssembliesSummary, MarkdownSummaryGithub, MarkdownDeltaSummary, MHtml, SvgChart, SonarQube, TeamCitySummary, TextSummary, TextDeltaSummary, Xml, XmlSummary, cjson
           tag: "${{ github.run_number }}_${{ github.run_id }}" # Optional tag or build version.
