@@ -28,6 +28,12 @@ public partial class WebAppTests : CustomPageTest
         // footwear link should redirect to login page
         await Page.Login("alice", "alice");  // customer
 
+        // alice's cart is real, persistent backend state (unlike ApiTests' per-session Testcontainers
+        // DB, this AppHost's Postgres survives across separate test runs) - start from a known-empty
+        // cart so this test isn't corrupted by leftovers from an interrupted previous run/attempt.
+        await ClearCartIfNotEmptyAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Footwear" }).ClickAsync();
+
         // Razor UI rendered products as table rows; the Angular UI uses mat-card grid items instead.
         //await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
         //            .GetByRole(AriaRole.Button).ClickAsync();
@@ -81,8 +87,9 @@ public partial class WebAppTests : CustomPageTest
     }
 
     [Test]
-    // alice's cart is shared backend state across every test that logs in as her -
-    // run only after CustomerCanPlaceOrderAndGetEmail has cleared it via checkout.
+    // alice's cart is shared backend state across every test that logs in as her - DependsOn just
+    // serializes these against each other so two don't race on the same account; each test also
+    // defensively clears the cart itself, so a dirty handoff from a previous run/attempt can't break it.
     [DependsOn(nameof(CustomerCanPlaceOrderAndGetEmail))]
     public async Task CustomerCanCancelOrderFromCartPage()
     {
@@ -90,6 +97,9 @@ public partial class WebAppTests : CustomPageTest
         await Page.GetByRole(AriaRole.Link, new() { Name = "Footwear" }).ClickAsync();
 
         await Page.Login("alice", "alice");
+
+        await ClearCartIfNotEmptyAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Footwear" }).ClickAsync();
 
         //await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
         //            .GetByRole(AriaRole.Button).ClickAsync();
@@ -119,6 +129,9 @@ public partial class WebAppTests : CustomPageTest
         await Page.GetByRole(AriaRole.Link, new() { Name = "Footwear" }).ClickAsync();
 
         await Page.Login("alice", "alice");
+
+        await ClearCartIfNotEmptyAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Footwear" }).ClickAsync();
 
         //await Page.GetByRole(AriaRole.Row, new() { Name = "Desert Walker" })
         //            .GetByRole(AriaRole.Button).ClickAsync();
@@ -196,17 +209,7 @@ public partial class WebAppTests : CustomPageTest
         // bob's cart is real, persistent state (unlike ApiTests' per-session Testcontainers DB,
         // this AppHost's Postgres survives across separate test runs) - start from a known-empty
         // cart so the cart-badge assertion below is reliable no matter how many times this ran before.
-        // Razor routing was case-insensitive ("Cart"); Angular's router only registers "cart".
-        //await Page.GotoAsync(new Uri(new Uri(WebAppUrl), "Cart").ToString());
-        await Page.GotoAsync(new Uri(new Uri(WebAppUrl), "cart").ToString());
-        var clearCartButton = Page.GetByRole(AriaRole.Button, new() { Name = "Cancel Order / Clear Cart" });
-        if (await clearCartButton.IsVisibleAsync())
-        {
-            await clearCartButton.ClickAsync();
-            //await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart (0)" })).ToBeVisibleAsync();
-            await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart" })).ToBeVisibleAsync();
-            await Expect(Page.Locator("a.cart-link .mat-badge-content")).Not.ToBeVisibleAsync();
-        }
+        await ClearCartIfNotEmptyAsync();
 
         await Page.GetByRole(AriaRole.Link, new() { Name = "Footwear" }).ClickAsync();
 
@@ -237,5 +240,25 @@ public partial class WebAppTests : CustomPageTest
         var cartItem = await Fixture.TestDbContext.CartItems
                                 .FirstOrDefaultAsync(c => c.ProductId == desertWalker!.Id);
         await Assert.That(cartItem).IsNotNull();
+    }
+
+    /// <summary>
+    /// Clears the signed-in user's cart if it already has anything in it. Every test that logs in
+    /// as a real user (alice, bob) calls this right after login: their carts are real, persistent
+    /// rows in this AppHost's Postgres, not per-test-session state, so a leftover item from an
+    /// interrupted previous run/attempt would otherwise silently throw off badge-count assertions.
+    /// Razor routing was case-insensitive ("Cart"); Angular's router only registers "cart".
+    /// </summary>
+    private async Task ClearCartIfNotEmptyAsync()
+    {
+        await Page.GotoAsync(new Uri(new Uri(WebAppUrl), "cart").ToString());
+
+        var clearCartButton = Page.GetByRole(AriaRole.Button, new() { Name = "Cancel Order / Clear Cart" });
+        if (await clearCartButton.IsVisibleAsync())
+        {
+            await clearCartButton.ClickAsync();
+            await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Cart" })).ToBeVisibleAsync();
+            await Expect(Page.Locator("a.cart-link .mat-badge-content")).Not.ToBeVisibleAsync();
+        }
     }
 }
